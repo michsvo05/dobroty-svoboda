@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dobroty Svoboda – Dotazník spokojenosti</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #fdf6ec;
+      --warm-white: #fffdf9;
+      --brown: #3b2314;
+      --brown-mid: #6b3d1e;
+      --brown-light: #b5713a;
+      --gold: #c9933a;
+      --gold-light: #e8c07a;
+      --text: #2e1a0e;
+      --text-soft: #7a5c3e;
+      --border: rgba(185,130,60,0.25);
+      --shadow: rgba(59,35,20,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Lato', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* BG */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse at 20% 10%, #f5e3c3 0%, transparent 55%),
+                  radial-gradient(ellipse at 80% 90%, #e8d0a8 0%, transparent 55%),
+                  linear-gradient(160deg, #fdf0da 0%, #f5e4c4 50%, #ecdab0 100%);
+      pointer-events: none;
+    }
+    .bg::before {
+      content: '';
+      position: fixed; width: 600px; height: 600px; border-radius: 50%;
+      top: -200px; left: -200px;
+      background: radial-gradient(circle, rgba(201,147,58,0.10) 0%, transparent 70%);
+    }
+    .grain {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 180px;
+    }
+
+    /* LAYOUT */
+    .page {
+      position: relative; z-index: 2;
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 5rem;
+    }
+
+    /* HEADER */
+    .site-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.7s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .logo-row {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      margin-bottom: 0.6rem;
+    }
+    .logo-icon {
+      font-size: 1.6rem;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--brown);
+      border: 1.5px solid rgba(232,192,122,0.35);
+    }
+    .brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem; font-weight: 700;
+      color: var(--brown);
+    }
+    .brand span { color: var(--gold); font-style: italic; }
+    .header-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem; font-weight: 700;
+      color: var(--brown); line-height: 1.25;
+      margin-bottom: 0.5rem;
+    }
+    .header-sub {
+      font-size: 0.83rem; color: var(--text-soft); line-height: 1.6;
+    }
+
+    /* PROGRESS */
+    .progress-wrap {
+      margin-bottom: 2rem;
+      animation: fadeUp 0.7s 0.1s cubic-bezier(0.22,1,0.36,1) both;
+    }
+    .progress-label {
+      display: flex; justify-content: space-between;
+      font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--text-soft); margin-bottom: 0.5rem;
+    }
+    .progress-bar {
+      height: 4px; border-radius: 99px;
+      background: var(--border);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--brown), var(--gold));
+      transition: width 0.5s cubic-bezier(0.22,1,0.36,1);
+      width: 0%;
+    }
+
+    /* CARD */
+    .card {
+      background: var(--warm-white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow:
+        0 2px 4px var(--shadow),
+        0 12px 40px rgba(59,35,20,0.08),
+        0 40px 80px rgba(59,35,20,0.05);
+      overflow: hidden;
+      animation: fadeUp 0.7s 0.15s cubic-bezier(0.22,1,0.36,1) both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* STEP */
+    .step { display: none; }
+    .step.active { display: block; animation: stepIn 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+    @keyframes stepIn {
+      from { opacity: 0; transform: translateX(18px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .step-header {
+      background: var(--brown);
+      padding: 1.5rem 2rem;
+      position: relative;
+    }
+    .step-header::after {
+      content: '';
+      position: absolute; bottom: -1px; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), var(--gold), transparent);
+    }
+    .step-num {
+      font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(232,192,122,0.6); margin-bottom: 0.3rem;
+    }
+    .step-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem; font-weight: 700;
+      color: var(--cream); line-height: 1.3;
+    }
+
+    .step-body { padding: 2rem; }
+
+    /* STAR RATING */
+    .stars-label {
+      font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--text-soft); font-weight: 700; margin-bottom: 0.8rem; display: block;
+    }
+    .stars {
+      display: flex; gap: 0.4rem;
+      flex-direction: row-reverse;
+      justify-content: flex-end;
+      margin-bottom: 0.4rem;
+    }
+    .stars input { display: none; }
+    .stars label {
+      font-size: 2rem; cursor: pointer;
+      color: rgba(185,130,60,0.25);
+      transition: color 0.15s, transform 0.15s;
+      user-select: none;
+    }
+    .stars label:hover,
+    .stars label:hover ~ label,
+    .stars input:checked ~ label { color: var(--gold); }
+    .stars label:hover { transform: scale(1.15); }
+
+    .star-hint {
+      font-size: 0.72rem; color: var(--text-soft); min-height: 1rem;
+      transition: opacity 0.2s;
+    }
+
+    /* TEXTAREA */
+    .open-label {
+      font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--text-soft); font-weight: 700; margin-bottom: 0.55rem; display: block;
+    }
+    textarea {
+      width: 100%; min-height: 100px;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--cream);
+      color: var(--text);
+      font-family: 'Lato', sans-serif;
+      font-size: 0.88rem; line-height: 1.6;
+      resize: vertical; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    textarea::placeholder { color: rgba(122,92,62,0.4); }
+    textarea:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,147,58,0.12);
+    }
+
+    /* SECOND OPEN Q */
+    .open-group { margin-top: 1.4rem; }
+
+    /* NAV BUTTONS */
+    .step-nav {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.2rem 2rem 1.8rem;
+      border-top: 1px solid var(--border);
+    }
+    .btn-back {
+      background: none; border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.65rem 1.3rem;
+      font-family: 'Lato', sans-serif; font-size: 0.75rem;
+      font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-soft); cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-back:hover { border-color: var(--gold); color: var(--brown); }
+    .btn-next {
+      background: var(--brown); border: none;
+      border-radius: 8px; padding: 0.75rem 1.8rem;
+      font-family: 'Lato', sans-serif; font-size: 0.75rem;
+      font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--cream); cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      position: relative; overflow: hidden;
+    }
+    .btn-next:hover { background: var(--brown-mid); }
+    .btn-next:active { transform: scale(0.97); }
+    .btn-next::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+      transform: scaleX(0); transition: transform 0.3s;
+    }
+    .btn-next:hover::after { transform: scaleX(1); }
+
+    /* ERROR */
+    .step-error {
+      font-size: 0.72rem; color: #b94040;
+      margin: 0 2rem 0.8rem; display: none;
+    }
+    .step-error.visible { display: block; }
+
+    /* SEPARATOR between questions in same step */
+    .q-sep { border: none; border-top: 1px solid var(--border); margin: 1.8rem 0; }
+
+    /* SUCCESS SCREEN */
+    .success-screen {
+      display: none; text-align: center;
+      padding: 3.5rem 2.5rem;
+    }
+    .success-screen.active { display: block; animation: stepIn 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+    .success-icon-big {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; margin: 0 auto 1.5rem;
+      box-shadow: 0 8px 24px rgba(201,147,58,0.3);
+      animation: iconBounce 0.6s 0.2s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes iconBounce {
+      from { transform: scale(0); } to { transform: scale(1); }
+    }
+    .success-title-big {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem; font-weight: 700; color: var(--brown);
+      margin-bottom: 0.7rem; line-height: 1.3;
+    }
+    .success-title-big em { font-style: italic; color: var(--gold); }
+    .success-sub {
+      font-size: 0.86rem; color: var(--text-soft); line-height: 1.65;
+    }
+  </style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grain"></div>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="logo-row">
+      <div class="logo-icon">🍫</div>
+      <div class="brand">Dobroty <span>Svoboda</span></div>
+    </div>
+    <h1 class="header-title">Dotazník spokojenosti</h1>
+    <p class="header-sub">Zabere vám to jen chvíli. Vaše zpětná vazba nám pomáhá být lepšími.</p>
+  </header>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span id="prog-label">Otázka 1 z 5</span>
+      <span id="prog-pct">0 %</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <!-- CARD -->
+  <div class="card" id="main-card">
+
+    <!-- STEP 1: Množství -->
+    <div class="step active" data-step="1">
+      <div class="step-header">
+        <div class="step-num">Otázka 1 z 5</div>
+        <div class="step-title">Jak jste spokojeni s množstvím obsahu v balíčku?</div>
+      </div>
+      <div class="step-body">
+        <span class="stars-label">Ohodnoťte prosím</span>
+        <div class="stars" id="stars-1">
+          <input type="radio" name="q1" id="q1s5" value="5"/><label for="q1s5" title="Výborné">★</label>
+          <input type="radio" name="q1" id="q1s4" value="4"/><label for="q1s4" title="Dobré">★</label>
+          <input type="radio" name="q1" id="q1s3" value="3"/><label for="q1s3" title="Průměrné">★</label>
+          <input type="radio" name="q1" id="q1s2" value="2"/><label for="q1s2" title="Slabé">★</label>
+          <input type="radio" name="q1" id="q1s1" value="1"/><label for="q1s1" title="Špatné">★</label>
+        </div>
+        <div class="star-hint" id="hint-1"></div>
+      </div>
+      <div class="step-error" id="err-1">Prosím vyberte hodnocení.</div>
+      <div class="step-nav">
+        <span></span>
+        <button class="btn-next" onclick="nextStep(1)">Další →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Rozmanitost -->
+    <div class="step" data-step="2">
+      <div class="step-header">
+        <div class="step-num">Otázka 2 z 5</div>
+        <div class="step-title">Jak hodnotíte rozmanitost sortimentu?</div>
+      </div>
+      <div class="step-body">
+        <span class="stars-label">Ohodnoťte prosím</span>
+        <div class="stars" id="stars-2">
+          <input type="radio" name="q2" id="q2s5" value="5"/><label for="q2s5">★</label>
+          <input type="radio" name="q2" id="q2s4" value="4"/><label for="q2s4">★</label>
+          <input type="radio" name="q2" id="q2s3" value="3"/><label for="q2s3">★</label>
+          <input type="radio" name="q2" id="q2s2" value="2"/><label for="q2s2">★</label>
+          <input type="radio" name="q2" id="q2s1" value="1"/><label for="q2s1">★</label>
+        </div>
+        <div class="star-hint" id="hint-2"></div>
+      </div>
+      <div class="step-error" id="err-2">Prosím vyberte hodnocení.</div>
+      <div class="step-nav">
+        <button class="btn-back" onclick="prevStep(2)">← Zpět</button>
+        <button class="btn-next" onclick="nextStep(2)">Další →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Doručení + Komunikace -->
+    <div class="step" data-step="3">
+      <div class="step-header">
+        <div class="step-num">Otázka 3–4 z 5</div>
+        <div class="step-title">Doručení a komunikace</div>
+      </div>
+      <div class="step-body">
+        <span class="stars-label">Rychlost doručení</span>
+        <div class="stars" id="stars-3">
+          <input type="radio" name="q3" id="q3s5" value="5"/><label for="q3s5">★</label>
+          <input type="radio" name="q3" id="q3s4" value="4"/><label for="q3s4">★</label>
+          <input type="radio" name="q3" id="q3s3" value="3"/><label for="q3s3">★</label>
+          <input type="radio" name="q3" id="q3s2" value="2"/><label for="q3s2">★</label>
+          <input type="radio" name="q3" id="q3s1" value="1"/><label for="q3s1">★</label>
+        </div>
+        <div class="star-hint" id="hint-3"></div>
+
+        <hr class="q-sep"/>
+
+        <span class="stars-label">Komunikace ohledně zásilky</span>
+        <div class="stars" id="stars-4">
+          <input type="radio" name="q4" id="q4s5" value="5"/><label for="q4s5">★</label>
+          <input type="radio" name="q4" id="q4s4" value="4"/><label for="q4s4">★</label>
+          <input type="radio" name="q4" id="q4s3" value="3"/><label for="q4s3">★</label>
+          <input type="radio" name="q4" id="q4s2" value="2"/><label for="q4s2">★</label>
+          <input type="radio" name="q4" id="q4s1" value="1"/><label for="q4s1">★</label>
+        </div>
+        <div class="star-hint" id="hint-4"></div>
+      </div>
+      <div class="step-error" id="err-3">Prosím ohodnoťte obě otázky.</div>
+      <div class="step-nav">
+        <button class="btn-back" onclick="prevStep(3)">← Zpět</button>
+        <button class="btn-next" onclick="nextStep(3)">Další →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Celková spokojenost -->
+    <div class="step" data-step="4">
+      <div class="step-header">
+        <div class="step-num">Otázka 5 z 5</div>
+        <div class="step-title">Celková spokojenost s Dobroty Svoboda</div>
+      </div>
+      <div class="step-body">
+        <span class="stars-label">Ohodnoťte prosím</span>
+        <div class="stars" id="stars-5">
+          <input type="radio" name="q5" id="q5s5" value="5"/><label for="q5s5">★</label>
+          <input type="radio" name="q5" id="q5s4" value="4"/><label for="q5s4">★</label>
+          <input type="radio" name="q5" id="q5s3" value="3"/><label for="q5s3">★</label>
+          <input type="radio" name="q5" id="q5s2" value="2"/><label for="q5s2">★</label>
+          <input type="radio" name="q5" id="q5s1" value="1"/><label for="q5s1">★</label>
+        </div>
+        <div class="star-hint" id="hint-5"></div>
+      </div>
+      <div class="step-error" id="err-4">Prosím vyberte hodnocení.</div>
+      <div class="step-nav">
+        <button class="btn-back" onclick="prevStep(4)">← Zpět</button>
+        <button class="btn-next" onclick="nextStep(4)">Další →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: Otevřené otázky -->
+    <div class="step" data-step="5">
+      <div class="step-header">
+        <div class="step-num">Závěrečné otázky</div>
+        <div class="step-title">Řekněte nám více</div>
+      </div>
+      <div class="step-body">
+        <label class="open-label" for="open-like">Co se vám líbilo nejvíce?</label>
+        <textarea id="open-like" placeholder="Např. výběr čokolád, balení, rychlost…"></textarea>
+
+        <div class="open-group">
+          <label class="open-label" for="open-improve">Co bychom mohli zlepšit?</label>
+          <textarea id="open-improve" placeholder="Jakýkoliv nápad nebo podnět je vítán…"></textarea>
+        </div>
+      </div>
+      <div class="step-nav">
+        <button class="btn-back" onclick="prevStep(5)">← Zpět</button>
+        <button class="btn-next" onclick="submitForm()">Odeslat ✓</button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon-big">🍫</div>
+      <div class="success-title-big">Děkujeme!<br/><em>Vaše odpovědi jsme obdrželi.</em></div>
+      <p class="success-sub">Vaše zpětná vazba nám pomáhá<br/>přinášet vám stále lepší dobroty. 🎉</p>
+    </div>
+
+  </div><!-- /card -->
+</div><!-- /page -->
+
+<script>
+  const TOTAL_STEPS = 5;
+  let currentStep = 1;
+
+  const HINTS = ['', 'Špatné', 'Slabé', 'Průměrné', 'Dobré', 'Výborné'];
+
+  // Attach hint listeners to all star groups
+  [1,2,3,4,5].forEach(qNum => {
+    const hintEl = document.getElementById('hint-' + qNum);
+    if (!hintEl) return;
+    document.querySelectorAll(`input[name="q${qNum}"]`).forEach(radio => {
+      radio.addEventListener('change', () => {
+        hintEl.textContent = HINTS[radio.value] || '';
+      });
+    });
+  });
+
+  function getVal(name) {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : null;
+  }
+
+  function showStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    const target = document.querySelector(`.step[data-step="${n}"]`);
+    if (target) target.classList.add('active');
+
+    // progress
+    const pct = Math.round(((n - 1) / TOTAL_STEPS) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('prog-pct').textContent = pct + ' %';
+
+    // label — step 3 covers 2 questions
+    const labels = {1:'Otázka 1 z 5', 2:'Otázka 2 z 5', 3:'Otázky 3–4 z 5', 4:'Otázka 5 z 5', 5:'Závěrečné otázky'};
+    document.getElementById('prog-label').textContent = labels[n] || '';
+
+    currentStep = n;
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  function nextStep(from) {
+    // Validate
+    if (from === 1) {
+      if (!getVal('q1')) { showErr('err-1'); return; }
+      hideErr('err-1');
+    } else if (from === 2) {
+      if (!getVal('q2')) { showErr('err-2'); return; }
+      hideErr('err-2');
+    } else if (from === 3) {
+      if (!getVal('q3') || !getVal('q4')) { showErr('err-3'); return; }
+      hideErr('err-3');
+    } else if (from === 4) {
+      if (!getVal('q5')) { showErr('err-4'); return; }
+      hideErr('err-4');
+    }
+    showStep(from + 1);
+  }
+
+  function prevStep(from) {
+    showStep(from - 1);
+  }
+
+  function showErr(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('visible');
+  }
+  function hideErr(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('visible');
+  }
+
+  const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxbGBYoC3tlwQ_jGeE-UWpL76eQGWlAs9XHD5j860txyg40baw2SFvWapeTW0462Nru/exec';
+
+  function submitForm() {
+    const payload = {
+      mnozstvi: getVal('q1'),
+      rozmanitost: getVal('q2'),
+      doruceni: getVal('q3'),
+      komunikace: getVal('q4'),
+      celkova: getVal('q5'),
+      liked: document.getElementById('open-like').value,
+      improve: document.getElementById('open-improve').value,
+    };
+
+    // Zobraz uspech okamzite, data odesli na pozadi
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('success-screen').classList.add('active');
+    document.getElementById('progress-fill').style.width = '100%';
+    document.getElementById('prog-pct').textContent = '100 %';
+    document.getElementById('prog-label').textContent = 'Dokonceno';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+
+    fetch(SHEETS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(err => console.error('Chyba pri odesilani:', err));
+  }
+</script>
+</body>
+</html>
